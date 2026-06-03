@@ -1,0 +1,51 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  passwordHash    String    @map("password_hash")
+  fullName        String?   @map("full_name")
+  role            String    @map("role") @default("user")
+  emailVerified   Boolean   @default(false) @map("email_verified")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at")
+
+  bots            Bot[]
+
+  @@map("users")
+}
+
+model Bot {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  name           String
+  slug           String
+  systemPrompt   String   @map("system_prompt")
+  model          String
+  temperature    Float    @map("temperature")
+  maxTokens      Int      @map("max_tokens")
+  status         String   @default("draft")
+  embedKey       String   @unique @map("embed_key")
+  widgetConfig   Json     @map("widget_config") @default("{}")
+  allowedDomains Json     @map("allowed_domains") @default("[]")
+  isPublic       Boolean  @default(false) @map("is_public")
+  messageCount   Int      @default(0) @map("message_count")
+  lastActiveAt   DateTime? @map("last_active_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([slug, userId])
+  @@map("bots")
+}
