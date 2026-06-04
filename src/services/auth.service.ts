@@ -1,6 +1,7 @@
 import { prisma } from "../lib/prisma";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { Role } from "@prisma/client";
 
 class AuthService {
   register = async (email: string, password: string, fullName: string) => {
@@ -10,6 +11,7 @@ class AuthService {
         email,
         passwordHash,
         fullName,
+        role: Role.USER,
       },
     });
     console.log("Registered user:", { email, fullName });

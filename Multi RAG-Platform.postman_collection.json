@@ -1,0 +1,500 @@
+{
+  "info": {
+    "name": "Multi RAG-Platform",
+    "description": "API collection for the Multi RAG-Platform — a chatbot builder with RAG (Retrieval-Augmented Generation) using Google Gemini + LangChain + pgvector.\n\n## Setup\n1. Register a user via `POST /api/auth/register`\n2. Login via `POST /api/auth/login` and copy the token\n3. Set the `token` variable in the collection (or use the login response's auto-set script)\n4. Create a bot via `POST /api/bots/create`\n5. Add knowledge sources via text, file upload, or URL\n6. Chat with your bot via `POST /api/chat/:botId`",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "botId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "knowledgeSourceId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "conversationId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"status\": \"ok\",\n  \"timestamp\": \"2026-06-04T12:00:00.000Z\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"securepassword\",\n  \"fullName\": \"John Doe\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          },
+          "response": [
+            {
+              "name": "Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"message\": \"User registered successfully\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.collectionVariables.set('token', jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"securepassword\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "code": 200,
+              "body": "{\n  \"message\": \"User logged in successfully\",\n  \"token\": \"eyJhbGciOiJIUzI1NiIs...\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET Protected Route",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/protected",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "protected"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "code": 200,
+              "body": "{\n  \"message\": \"This is a protected route\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET Admin Route",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success (admin only)",
+              "code": 200,
+              "body": "{\n  \"message\": \"This is an admin-only route\"\n}"
+            },
+            {
+              "name": "Forbidden (non-admin)",
+              "code": 403,
+              "body": "{\n  \"error\": \"Forbidden: insufficient permissions\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Bots",
+      "item": [
+        {
+          "name": "POST Create Bot",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.collectionVariables.set('botId', jsonData.bot.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Support Bot\",\n  \"slug\": \"my-support-bot\",\n  \"systemPrompt\": \"You are a helpful customer support assistant. Answer questions based on the provided context.\",\n  \"model\": \"gemini-2.0-flash\",\n  \"temperature\": 0.7,\n  \"maxTokens\": 2048,\n  \"isPublic\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bots/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bots", "create"]
+            }
+          },
+          "response": [
+            {
+              "name": "Created",
+              "code": 201,
+              "body": "{\n  \"message\": \"Bot created successfully\",\n  \"bot\": {\n    \"id\": \"uuid\",\n    \"userId\": \"uuid\",\n    \"name\": \"My Support Bot\",\n    \"slug\": \"my-support-bot\",\n    \"embedKey\": \"emb_...\",\n    ...\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "PUT Update Bot",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Updated Bot\",\n  \"systemPrompt\": \"You are an expert assistant.\",\n  \"temperature\": 0.5,\n  \"status\": \"published\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bots/{{botId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bots", "{{botId}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "code": 200,
+              "body": "{\n  \"message\": \"Bot updated successfully\",\n  \"bot\": { ... }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Knowledge Sources",
+      "item": [
+        {
+          "name": "POST Add Text",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.collectionVariables.set('knowledgeSourceId', jsonData.source.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"botId\": \"{{botId}}\",\n  \"name\": \"Earth Facts\",\n  \"content\": \"The Earth is the third planet from the Sun and the only known planet to harbor life. About 71% of Earth's surface is covered with water, mostly by oceans. The remaining 29% is land consisting of continents and islands. Earth's atmosphere is composed mostly of nitrogen and oxygen. Earth's gravity interacts with other objects in space, especially the Sun and the Moon.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/knowledge-sources/text",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "knowledge-sources", "text"]
+            }
+          },
+          "response": [
+            {
+              "name": "Created",
+              "code": 201,
+              "body": "{\n  \"message\": \"Text added and indexed successfully\",\n  \"source\": {\n    \"id\": \"uuid\",\n    \"botId\": \"uuid\",\n    \"sourceType\": \"text\",\n    \"chunkCount\": 2,\n    \"indexStatus\": \"completed\",\n    ...\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST Upload File",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "botId", "value": "{{botId}}", "type": "text" },
+                { "key": "file", "type": "file", "src": "/path/to/your/file.pdf" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/knowledge-sources/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "knowledge-sources", "upload"]
+            }
+          },
+          "response": [
+            {
+              "name": "Created",
+              "code": 201,
+              "body": "{\n  \"message\": \"File uploaded and indexed successfully\",\n  \"source\": { ... }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST Add URL",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"botId\": \"{{botId}}\",\n  \"url\": \"https://en.wikipedia.org/wiki/Earth\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/knowledge-sources/url",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "knowledge-sources", "url"]
+            }
+          },
+          "response": [
+            {
+              "name": "Created",
+              "code": 201,
+              "body": "{\n  \"message\": \"URL fetched and indexed successfully\",\n  \"source\": { ... }\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET List Sources",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/knowledge-sources?botId={{botId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "knowledge-sources"],
+              "query": [
+                { "key": "botId", "value": "{{botId}}" }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "code": 200,
+              "body": "[\n  {\n    \"id\": \"uuid\",\n    \"botId\": \"uuid\",\n    \"sourceType\": \"text\",\n    \"name\": \"Earth Facts\",\n    \"chunkCount\": 2,\n    \"indexStatus\": \"completed\",\n    ...\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "GET Single Source",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/knowledge-sources/{{knowledgeSourceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "knowledge-sources", "{{knowledgeSourceId}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "code": 200,
+              "body": "{\n  \"id\": \"uuid\",\n  \"botId\": \"uuid\",\n  \"sourceType\": \"text\",\n  ...\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST Reindex Source",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/knowledge-sources/{{knowledgeSourceId}}/reindex",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "knowledge-sources", "{{knowledgeSourceId}}", "reindex"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "code": 200,
+              "body": "{\n  \"message\": \"Source reindexed successfully\",\n  \"source\": { ... }\n}"
+            }
+          ]
+        },
+        {
+          "name": "DELETE Source",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/knowledge-sources/{{knowledgeSourceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "knowledge-sources", "{{knowledgeSourceId}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "code": 200,
+              "body": "{\n  \"message\": \"Knowledge source deleted successfully\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Chat",
+      "item": [
+        {
+          "name": "POST Send Message",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.collectionVariables.set('conversationId', jsonData.conversationId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": \"visitor-session-123\",\n  \"visitorId\": \"visitor-456\",\n  \"message\": \"Tell me about Earth\",\n  \"pageUrl\": \"https://example.com/contact\",\n  \"referrer\": \"https://google.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/{{botId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat", "{{botId}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "code": 200,
+              "body": "{\n  \"reply\": \"The Earth is the third planet from the Sun...\",\n  \"sources\": [\n    { \"content\": \"The Earth is the third planet...\", \"chunkIndex\": 0 }\n  ],\n  \"conversationId\": \"uuid\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET Conversation Messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/conversations/{{conversationId}}/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat", "conversations", "{{conversationId}}", "messages"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "code": 200,
+              "body": "[\n  {\n    \"id\": \"uuid\",\n    \"conversationId\": \"uuid\",\n    \"role\": \"user\",\n    \"content\": \"Tell me about Earth\",\n    \"createdAt\": \"...\"\n  },\n  {\n    \"id\": \"uuid\",\n    \"conversationId\": \"uuid\",\n    \"role\": \"assistant\",\n    \"content\": \"The Earth is the third planet...\",\n    \"sourcesUsed\": [...],\n    \"createdAt\": \"...\"\n  }\n]"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

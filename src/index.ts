@@ -5,7 +5,10 @@ import morgan from "morgan";
 import { globalErrorHandler } from "./middleware/errorHandler.middleware";
 import authRoutes from "./routes/auth.routes";
 import botRoutes from "./routes/bot.routes";
+import knowledgeRoutes from "./routes/knowledge.routes";
+import chatRoutes from "./routes/chat.routes";
 import { verifyToken, authorizeRole } from "./middleware/auth.middleware";
+import { Role } from "@prisma/client";
 
 const app = express();
 
@@ -23,14 +26,16 @@ app.get("/health", (req, res) => {
 
 // Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/bots", verifyToken, authorizeRole(["user", "admin"]), botRoutes);
+app.use("/api/bots", verifyToken, authorizeRole([Role.USER, Role.ADMIN]), botRoutes);
+app.use("/api/knowledge-sources", verifyToken, authorizeRole([Role.USER, Role.ADMIN]), knowledgeRoutes);
+app.use("/api/chat", chatRoutes);
 
 //Protected route example
 app.get("/api/protected", verifyToken, (req, res) => {
   res.json({ message: "This is a protected route" });
 });
 
-app.get("/api/admin", verifyToken, authorizeRole(["admin"]), (req, res) => {
+app.get("/api/admin", verifyToken, authorizeRole([Role.ADMIN]), (req, res) => {
   res.json({ message: "This is an admin-only route" });
 });
 

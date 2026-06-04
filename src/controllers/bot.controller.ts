@@ -41,7 +41,7 @@ export const updateBot = async (
   next: NextFunction,
 ) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { name, slug, systemPrompt, model, temperature, maxTokens, status, widgetConfig, allowedDomains, isPublic } = req.body;
 
     if (!id) {

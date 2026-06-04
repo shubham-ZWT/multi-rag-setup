@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { Role } from "@prisma/client";
 
 interface JwtPayload {
   userId: string;
-  role: string;
+  role: Role;
 }
 
 declare global {
@@ -32,7 +33,7 @@ const verifyToken = (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const authorizeRole = (roles: string[]) => {
+const authorizeRole = (roles: Role[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user || !roles.includes(req.user.role)) {
       return res
