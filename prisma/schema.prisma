@@ -7,45 +7,264 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  ADMIN
+  USER
+}
 
 model User {
-  id              String    @id @default(uuid())
-  email           String    @unique
-  passwordHash    String    @map("password_hash")
-  fullName        String?   @map("full_name")
-  role            String    @map("role") @default("user")
-  emailVerified   Boolean   @default(false) @map("email_verified")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-  deletedAt       DateTime? @map("deleted_at")
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  fullName      String?   @map("full_name")
+  role          Role      @default(USER) @map("role")
+  emailVerified Boolean   @default(false) @map("email_verified")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
 
-  bots            Bot[]
+  bots             Bot[]
+  knowledgeSources KnowledgeSource[]
+  auditLogs        AuditLog[]
+  subscriptions    Subscription[]
+  invoices         Invoice[]
 
   @@map("users")
 }
 
 model Bot {
-  id             String   @id @default(uuid())
-  userId         String   @map("user_id")
+  id             String    @id @default(uuid())
+  userId         String    @map("user_id")
   name           String
   slug           String
-  systemPrompt   String   @map("system_prompt")
+  systemPrompt   String    @map("system_prompt")
   model          String
-  temperature    Float    @map("temperature")
-  maxTokens      Int      @map("max_tokens")
-  status         String   @default("draft")
-  embedKey       String   @unique @map("embed_key")
-  widgetConfig   Json     @map("widget_config") @default("{}")
-  allowedDomains Json     @map("allowed_domains") @default("[]")
-  isPublic       Boolean  @default(false) @map("is_public")
-  messageCount   Int      @default(0) @map("message_count")
+  temperature    Float     @map("temperature")
+  maxTokens      Int       @map("max_tokens")
+  status         String    @default("draft")
+  embedKey       String    @unique @map("embed_key")
+  widgetConfig   Json      @default("{}") @map("widget_config")
+  allowedDomains Json      @default("[]") @map("allowed_domains")
+  isPublic       Boolean   @default(false) @map("is_public")
+  messageCount   Int       @default(0) @map("message_count")
   lastActiveAt   DateTime? @map("last_active_at")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
   deletedAt      DateTime? @map("deleted_at")
 
-  user User @relation(fields: [userId], references: [id])
+  user             User                @relation(fields: [userId], references: [id])
+  knowledgeSources KnowledgeSource[]
+  chunks           Chunk[]
+  analyticsDaily   BotAnalyticsDaily[]
+  conversations    Conversation[]
 
   @@unique([slug, userId])
   @@map("bots")
+}
+
+model KnowledgeSource {
+  id            String    @id @default(uuid())
+  botId         String    @map("bot_id")
+  userId        String    @map("user_id")
+  sourceType    String    @map("source_type")
+  name          String
+  contentRaw    String    @map("content_raw")
+  fileUrl       String?   @map("file_url")
+  fileMimeType  String?   @map("file_mime_type")
+  fileSizeBytes Int?      @map("file_size_bytes")
+  url           String?
+  chunkCount    Int?      @default(0) @map("chunk_count")
+  indexStatus   String    @default("pending") @map("index_status")
+  indexError    String?   @map("index_error")
+  indexedAt     DateTime? @map("indexed_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  bot    Bot     @relation(fields: [botId], references: [id])
+  user   User    @relation(fields: [userId], references: [id])
+  chunks Chunk[]
+
+  @@map("knowledge_sources")
+}
+
+model Chunk {
+  id                String                @id @default(uuid())
+  knowledgeSourceId String                @map("knowledge_source_id")
+  botId             String                @map("bot_id")
+  content           String
+  chunkIndex        Int                   @map("chunk_index")
+  tokenCount        Int                   @map("token_count")
+  embeddingModel    String                @map("embedding_model")
+  embedding         Unsupported("vector")
+  metadata          Json                  @default("{}")
+  createdAt         DateTime              @default(now()) @map("created_at")
+
+  knowledgeSource KnowledgeSource @relation(fields: [knowledgeSourceId], references: [id])
+  bot             Bot             @relation(fields: [botId], references: [id])
+
+  @@map("chunks")
+}
+
+model BotAnalyticsDaily {
+  id                 String   @id @default(uuid())
+  botId              String   @map("bot_id")
+  date               DateTime @db.Date
+  totalConversations Int      @default(0) @map("total_conversations")
+  totalMessages      Int      @default(0) @map("total_messages")
+  uniqueVisitors     Int      @default(0) @map("unique_visitors")
+  avgMessagesPerConv Float    @default(0) @map("avg_messages_per_conv")
+  avgConfidenceScore Float    @default(0) @map("avg_confidence_score")
+  totalTokensUsed    Int      @default(0) @map("total_tokens_used")
+  avgLatencyMs       Int      @default(0) @map("avg_latency_ms")
+  thumbsUp           Int      @default(0) @map("thumbs_up")
+  thumbsDown         Int      @default(0) @map("thumbs_down")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  bot Bot @relation(fields: [botId], references: [id])
+
+  @@unique([botId, date])
+  @@map("bot_analytics_daily")
+}
+
+model Conversation {
+  id            String    @id @default(uuid())
+  botId         String    @map("bot_id")
+  sessionId     String    @map("session_id")
+  visitorId     String    @map("visitor_id")
+  pageUrl       String?   @map("page_url")
+  referrer      String?
+  ipAddress     String?   @map("ip_address")
+  countryCode   String?   @map("country_code")
+  userAgent     String?   @map("user_agent")
+  messageCount  Int       @default(0) @map("message_count")
+  startedAt     DateTime  @default(now()) @map("started_at")
+  lastMessageAt DateTime  @map("last_message_at")
+  endedAt       DateTime? @map("ended_at")
+
+  bot      Bot       @relation(fields: [botId], references: [id])
+  messages Message[]
+
+  @@index([botId, sessionId])
+  @@map("conversations")
+}
+
+model Message {
+  id              String   @id @default(uuid())
+  conversationId  String   @map("conversation_id")
+  role            String
+  content         String
+  sourcesUsed     Json     @default("[]") @map("sources_used")
+  confidenceScore Float    @default(0) @map("confidence_score")
+  inputTokens     Int      @default(0) @map("input_tokens")
+  outputTokens    Int      @default(0) @map("output_tokens")
+  latencyMs       Int      @default(0) @map("latency_ms")
+  flagged         Boolean  @default(false)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  conversation Conversation      @relation(fields: [conversationId], references: [id])
+  feedback     MessageFeedback[]
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+model MessageFeedback {
+  id           String   @id @default(uuid())
+  messageId    String   @map("message_id")
+  feedbackType String   @map("feedback_type")
+  comment      String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  message Message @relation(fields: [messageId], references: [id])
+
+  @@index([messageId])
+  @@map("message_feedback")
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  userId       String?  @map("user_id")
+  action       String
+  resourceType String   @map("resource_type")
+  resourceId   String?  @map("resource_id")
+  metadata     Json     @default("{}")
+  ipAddress    String?  @map("ip_address")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([resourceType, resourceId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Plan {
+  id                   String   @id @default(uuid())
+  name                 String
+  slug                 String   @unique
+  maxBots              Int      @default(1) @map("max_bots")
+  maxKbMb              Int      @default(10) @map("max_kb_mb")
+  maxMessagesMonth     Int      @default(1000) @map("max_messages_month")
+  maxSourcesPerBot     Int      @default(5) @map("max_sources_per_bot")
+  customBranding       Boolean  @default(false) @map("custom_branding")
+  analyticsAccess      Boolean  @default(false) @map("analytics_access")
+  apiAccess            Boolean  @default(false) @map("api_access")
+  priceMonthly         Decimal  @map("price_monthly")
+  priceYearly          Decimal  @map("price_yearly")
+  stripePriceIdMonthly String?  @unique @map("stripe_price_id_monthly")
+  stripePriceIdYearly  String?  @unique @map("stripe_price_id_yearly")
+  isActive             Boolean  @default(true) @map("is_active")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Subscription {
+  id                   String    @id @default(uuid())
+  userId               String    @map("user_id")
+  planId               String    @map("plan_id")
+  status               String
+  billingCycle         String    @map("billing_cycle")
+  stripeSubscriptionId String?   @unique @map("stripe_subscription_id")
+  stripeCustomerId     String?   @map("stripe_customer_id")
+  currentPeriodStart   DateTime  @map("current_period_start")
+  currentPeriodEnd     DateTime  @map("current_period_end")
+  cancelAt             DateTime? @map("cancel_at")
+  canceledAt           DateTime? @map("canceled_at")
+  trialEndsAt          DateTime? @map("trial_ends_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  user     User      @relation(fields: [userId], references: [id])
+  plan     Plan      @relation(fields: [planId], references: [id])
+  invoices Invoice[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+model Invoice {
+  id                    String    @id @default(uuid())
+  userId                String    @map("user_id")
+  subscriptionId        String?   @map("subscription_id")
+  stripeInvoiceId       String?   @unique @map("stripe_invoice_id")
+  stripePaymentIntentId String?   @map("stripe_payment_intent_id")
+  amountPaid            Decimal   @map("amount_paid")
+  currency              String    @default("usd")
+  status                String
+  paidAt                DateTime? @map("paid_at")
+  hostedInvoiceUrl      String?   @map("hosted_invoice_url")
+  createdAt             DateTime  @default(now()) @map("created_at")
+
+  user         User          @relation(fields: [userId], references: [id])
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("invoices")
 }
