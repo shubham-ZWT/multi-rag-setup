@@ -18,6 +18,7 @@ interface ChatResponse {
   reply: string;
   sources: { content: string; chunkIndex: number }[];
   conversationId: string;
+  messageId: string;
 }
 
 class ChatService {
@@ -85,7 +86,7 @@ class ChatService {
     const inputTokensEst = Math.ceil(input.message.length / 4);
     const outputTokensEst = Math.ceil(replyText.length / 4);
 
-    await prisma.message.create({
+    const assistantMsg = await prisma.message.create({
       data: {
         conversationId: conversation.id,
         role: "assistant",
@@ -106,7 +107,7 @@ class ChatService {
       },
     });
 
-    return { reply: replyText, sources, conversationId: conversation.id };
+    return { reply: replyText, sources, conversationId: conversation.id, messageId: assistantMsg.id };
   }
 
   async getMessages(conversationId: string) {
