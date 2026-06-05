@@ -19,24 +19,24 @@ export default function Hero() {
 
   return (
     <div className="w-full h-screen mesh-gradient">
-      <div className="max-w-7xl mx-auto px-4 h-full flex flex-col items-center justify-center relative z-10 text-primary">
-        <div className="flex flex-row max-w-7xl">
-          <div>
-            <h1 className="text-6xl font-semibold mb-6">
-              <span>Experience</span> <br></br>the power of{" "}
-              <span className="font-serif">RAG </span> in your application with
+      <div className="max-w-7xl mx-auto px-6 h-full flex flex-col items-center justify-center relative z-10 text-primary">
+        <div className="flex flex-col md:flex-row items-center md:items-stretch gap-8 md:gap-12">
+          <div className="flex-1">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold mb-6">
+              <span>Experience</span> <br />the power of{" "}
+              <span className="font-serif">RAG</span> in your application with
               ease
             </h1>
           </div>
-          <div className="ml-12 flex flex-col justify-center">
-            <p className="text-lg mb-8">
+          <div className="flex-1 flex flex-col justify-center">
+            <p className="text-base sm:text-lg mb-8">
               Deploy and manage your RAG bots with ease, no matter the
               complexity, just upload your knowledge source and let the platform
               handle the rest.
             </p>
-            <div className="flex items-center gap-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
               <Button
-                isprimary={false}
+                isprimary={true}
                 onClick={() => alert("Get Started clicked")}
               >
                 Get Started

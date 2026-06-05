@@ -23,7 +23,7 @@ const communityLinks = [
 
 export default function Footer() {
   return (
-    <footer className="bg-primary text-secondary py-16">
+    <footer className="bg-slate-50 text-secondary py-16">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="grid gap-12 md:grid-cols-[1.5fr_1fr_1fr_1fr] items-start">
           <div>

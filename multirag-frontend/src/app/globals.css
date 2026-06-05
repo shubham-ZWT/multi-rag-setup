@@ -11,7 +11,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-serif: var(--font-instrument-serif);
-  --font-sans: var(--font-poppins);
+  --font-sans: var(--font-albert-sans);
   --color-primary: var(--background);
   --color-secondary: var(--foreground);
 }
@@ -31,6 +31,7 @@ body {
 
 .mesh-gradient {
   position: relative;
+  overflow: hidden;
   background-color: #0f0f14;
 }
 
