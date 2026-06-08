@@ -1,77 +1,80 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import BotService from "../services/bot.service";
+import asyncHandler from "../utils/asyncHandler";
 
-export const createBot = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const { name, slug, systemPrompt, model, temperature, maxTokens, widgetConfig, allowedDomains, isPublic } = req.body;
+export const createBot = asyncHandler(async (req: Request, res: Response) => {
+  const {
+    name,
+    slug,
+    systemPrompt,
+    model,
+    temperature,
+    maxTokens,
+    widgetConfig,
+    allowedDomains,
+    isPublic,
+  } = req.body;
 
-    if (!name || !systemPrompt || !model || temperature === undefined || maxTokens === undefined) {
-      return res.status(400).json({ error: "Name, systemPrompt, model, temperature, and maxTokens are required" });
-    }
-
-    const result = await BotService.createBot({
-      userId: req.user!.userId,
-      name,
-      slug,
-      systemPrompt,
-      model,
-      temperature,
-      maxTokens,
-      widgetConfig,
-      allowedDomains,
-      isPublic,
+  if (
+    !name ||
+    !systemPrompt ||
+    !model ||
+    temperature === undefined ||
+    maxTokens === undefined
+  ) {
+    return res.status(400).json({
+      error:
+        "Name, systemPrompt, model, temperature, and maxTokens are required",
     });
-
-    res.status(201).json(result);
-  } catch (error: any) {
-    if (error?.code === "P2002") {
-      return res.status(409).json({ error: "A bot with this slug already exists" });
-    }
-    next(error);
   }
-};
 
-export const updateBot = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const id = req.params.id as string;
-    const { name, slug, systemPrompt, model, temperature, maxTokens, status, widgetConfig, allowedDomains, isPublic } = req.body;
+  const result = await BotService.createBot({
+    userId: req.user!.userId,
+    name,
+    slug,
+    systemPrompt,
+    model,
+    temperature,
+    maxTokens,
+    widgetConfig,
+    allowedDomains,
+    isPublic,
+  });
 
-    if (!id) {
-      return res.status(400).json({ error: "Bot ID is required" });
-    }
+  res.status(201).json(result);
+});
 
-    const result = await BotService.updateBot(id, req.user!.userId, {
-      name,
-      slug,
-      systemPrompt,
-      model,
-      temperature,
-      maxTokens,
-      status,
-      widgetConfig,
-      allowedDomains,
-      isPublic,
-    });
+export const updateBot = asyncHandler(async (req: Request, res: Response) => {
+  const id = req.params.id as string;
+  const {
+    name,
+    slug,
+    systemPrompt,
+    model,
+    temperature,
+    maxTokens,
+    status,
+    widgetConfig,
+    allowedDomains,
+    isPublic,
+  } = req.body;
 
-    res.json(result);
-  } catch (error: any) {
-    if (error.message === "Bot not found") {
-      return res.status(404).json({ error: "Bot not found" });
-    }
-    if (error.message === "Forbidden") {
-      return res.status(403).json({ error: "You can only update your own bots" });
-    }
-    if (error?.code === "P2002") {
-      return res.status(409).json({ error: "A bot with this slug already exists" });
-    }
-    next(error);
+  if (!id) {
+    return res.status(400).json({ error: "Bot ID is required" });
   }
-};
+
+  const result = await BotService.updateBot(id, req.user!.userId, {
+    name,
+    slug,
+    systemPrompt,
+    model,
+    temperature,
+    maxTokens,
+    status,
+    widgetConfig,
+    allowedDomains,
+    isPublic,
+  });
+
+  res.json(result);
+});

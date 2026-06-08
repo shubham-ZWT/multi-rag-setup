@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import AppError from "../utils/AppError";
 
 class ExtractionService {
   async extractFromFile(filePath: string, mimeType: string): Promise<string> {
@@ -9,7 +10,7 @@ class ExtractionService {
     if (mimeType === "text/plain") {
       return fs.readFileSync(filePath, "utf-8");
     }
-    throw new Error(`Unsupported mime type: ${mimeType}`);
+    throw new AppError(`Unsupported mime type: ${mimeType}`, 400);
   }
 
   private async extractPDF(filePath: string): Promise<string> {

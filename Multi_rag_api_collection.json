@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Multi RAG-Platform",
-    "description": "API collection for the Multi RAG-Platform — a chatbot builder with RAG (Retrieval-Augmented Generation) using Google Gemini + LangChain + pgvector.\n\n## Setup\n1. Register a user via `POST /api/auth/register`\n2. Login via `POST /api/auth/login` and copy the token\n3. Set the `token` variable in the collection (or use the login response's auto-set script)\n4. Create a bot via `POST /api/bots/create`\n5. Add knowledge sources via text, file upload, or URL\n6. Chat with your bot via `POST /api/chat/:botId`",
+    "description": "API collection for the Multi RAG-Platform — a chatbot builder with RAG (Retrieval-Augmented Generation) using Google Gemini + LangChain + pgvector.\n\n## Setup\n1. Register a user via `POST /api/auth/register`\n2. Login via `POST /api/auth/login` and copy the token\n3. Set the `token` variable in the collection (or use the login response's auto-set script)\n4. Create a bot via `POST /api/bots/create`\n5. Add knowledge sources via text, file upload, or URL\n6. Chat with your bot via `POST /api/chat/:botId`\n7. Embed the widget via `GET /widget/:embedKey/config`",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -29,6 +29,21 @@
       "key": "conversationId",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "embedKey",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "messageId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "resetToken",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -51,7 +66,32 @@
               "name": "Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"status\": \"ok\",\n  \"timestamp\": \"2026-06-04T12:00:00.000Z\"\n}"
+              "body": "{\n  \"status\": \"ok\",\n  \"timestamp\": \"2026-06-08T12:00:00.000Z\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Widget Static",
+      "item": [
+        {
+          "name": "GET /widget.js",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/widget.js",
+              "host": ["{{baseUrl}}"],
+              "path": ["widget.js"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "/* widget JavaScript bundle */"
             }
           ]
         }
@@ -64,9 +104,7 @@
           "name": "POST Register",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"securepassword\",\n  \"fullName\": \"John Doe\"\n}"
@@ -83,6 +121,11 @@
               "status": "Created",
               "code": 201,
               "body": "{\n  \"message\": \"User registered successfully\"\n}"
+            },
+            {
+              "name": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"error\": \"Email, password, and full name are required\"\n}"
             }
           ]
         },
@@ -104,9 +147,7 @@
           ],
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"securepassword\"\n}"
@@ -121,7 +162,12 @@
             {
               "name": "Success",
               "code": 200,
-              "body": "{\n  \"message\": \"User logged in successfully\",\n  \"token\": \"eyJhbGciOiJIUzI1NiIs...\"\n}"
+              "body": "{\n  \"success\": true,\n  \"message\": \"User logged in successfully\",\n  \"token\": \"eyJhbGciOiJIUzI1NiIs...\"\n}"
+            },
+            {
+              "name": "Unauthorized",
+              "code": 401,
+              "body": "{\n  \"error\": \"Invalid email or password\"\n}"
             }
           ]
         },
@@ -129,9 +175,7 @@
           "name": "GET Protected Route",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/protected",
               "host": ["{{baseUrl}}"],
@@ -150,9 +194,7 @@
           "name": "GET Admin Route",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/admin",
               "host": ["{{baseUrl}}"],
@@ -171,6 +213,76 @@
               "body": "{\n  \"error\": \"Forbidden: insufficient permissions\"\n}"
             }
           ]
+        },
+        {
+          "name": "POST Forgot Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.collectionVariables.set('resetToken', jsonData.resetToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "forgot-password"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Password reset token generated successfully\",\n  \"resetToken\": \"a1b2c3d4e5f6...\"\n}"
+            },
+            {
+              "name": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"error\": \"Email is required\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newPassword\": \"mynewsecurepassword\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/reset-password/{{resetToken}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "reset-password", "{{resetToken}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Password reset successfully\"\n}"
+            },
+            {
+              "name": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"error\": \"Invalid or expired reset token\"\n}"
+            }
+          ]
         }
       ]
     },
@@ -187,6 +299,7 @@
                   "if (pm.response.code === 201) {",
                   "  var jsonData = pm.response.json();",
                   "  pm.collectionVariables.set('botId', jsonData.bot.id);",
+                  "  pm.collectionVariables.set('embedKey', jsonData.bot.embedKey);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -201,7 +314,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"My Support Bot\",\n  \"slug\": \"my-support-bot\",\n  \"systemPrompt\": \"You are a helpful customer support assistant. Answer questions based on the provided context.\",\n  \"model\": \"gemini-2.0-flash\",\n  \"temperature\": 0.7,\n  \"maxTokens\": 2048,\n  \"isPublic\": true\n}"
+              "raw": "{\n  \"name\": \"My Support Bot\",\n  \"slug\": \"my-support-bot\",\n  \"systemPrompt\": \"You are a helpful customer support assistant. Answer questions based on the provided context.\",\n  \"model\": \"gemini-2.0-flash\",\n  \"temperature\": 0.7,\n  \"maxTokens\": 2048,\n  \"isPublic\": true,\n  \"allowedDomains\": [\"example.com\"],\n  \"widgetConfig\": {\n    \"primaryColor\": \"#4F46E5\",\n    \"position\": \"right\",\n    \"greeting\": \"Hello! How can I help you?\"\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/bots/create",
@@ -213,7 +326,12 @@
             {
               "name": "Created",
               "code": 201,
-              "body": "{\n  \"message\": \"Bot created successfully\",\n  \"bot\": {\n    \"id\": \"uuid\",\n    \"userId\": \"uuid\",\n    \"name\": \"My Support Bot\",\n    \"slug\": \"my-support-bot\",\n    \"embedKey\": \"emb_...\",\n    ...\n  }\n}"
+              "body": "{\n  \"message\": \"Bot created successfully\",\n  \"bot\": {\n    \"id\": \"uuid\",\n    \"userId\": \"uuid\",\n    \"name\": \"My Support Bot\",\n    \"slug\": \"my-support-bot\",\n    \"embedKey\": \"emb_...\",\n    \"status\": \"draft\",\n    \"isPublic\": true,\n    \"allowedDomains\": [\"example.com\"],\n    \"widgetConfig\": { ... },\n    ...\n  }\n}"
+            },
+            {
+              "name": "Conflict (slug exists)",
+              "code": 409,
+              "body": "{\n  \"error\": \"A bot with this slug already exists\"\n}"
             }
           ]
         },
@@ -284,7 +402,7 @@
             {
               "name": "Created",
               "code": 201,
-              "body": "{\n  \"message\": \"Text added and indexed successfully\",\n  \"source\": {\n    \"id\": \"uuid\",\n    \"botId\": \"uuid\",\n    \"sourceType\": \"text\",\n    \"chunkCount\": 2,\n    \"indexStatus\": \"completed\",\n    ...\n  }\n}"
+              "body": "{\n  \"message\": \"Text added and indexed successfully\",\n  \"source\": {\n    \"id\": \"uuid\",\n    \"botId\": \"uuid\",\n    \"sourceType\": \"text\",\n    \"name\": \"Earth Facts\",\n    \"chunkCount\": 2,\n    \"indexStatus\": \"completed\",\n    ...\n  }\n}"
             }
           ]
         },
@@ -292,14 +410,16 @@
           "name": "POST Upload File",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "body": {
               "mode": "formdata",
               "formdata": [
                 { "key": "botId", "value": "{{botId}}", "type": "text" },
-                { "key": "file", "type": "file", "src": "/path/to/your/file.pdf" }
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/path/to/your/file.pdf"
+                }
               ]
             },
             "url": {
@@ -313,6 +433,11 @@
               "name": "Created",
               "code": 201,
               "body": "{\n  \"message\": \"File uploaded and indexed successfully\",\n  \"source\": { ... }\n}"
+            },
+            {
+              "name": "Bad Request (no file)",
+              "code": 400,
+              "body": "{\n  \"error\": \"File is required\"\n}"
             }
           ]
         },
@@ -346,16 +471,12 @@
           "name": "GET List Sources",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/knowledge-sources?botId={{botId}}",
               "host": ["{{baseUrl}}"],
               "path": ["api", "knowledge-sources"],
-              "query": [
-                { "key": "botId", "value": "{{botId}}" }
-              ]
+              "query": [{ "key": "botId", "value": "{{botId}}" }]
             }
           },
           "response": [
@@ -370,9 +491,7 @@
           "name": "GET Single Source",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/knowledge-sources/{{knowledgeSourceId}}",
               "host": ["{{baseUrl}}"],
@@ -383,7 +502,7 @@
             {
               "name": "Success",
               "code": 200,
-              "body": "{\n  \"id\": \"uuid\",\n  \"botId\": \"uuid\",\n  \"sourceType\": \"text\",\n  ...\n}"
+              "body": "{\n  \"id\": \"uuid\",\n  \"botId\": \"uuid\",\n  \"sourceType\": \"text\",\n  \"name\": \"Earth Facts\",\n  \"contentRaw\": \"...\",\n  \"chunkCount\": 2,\n  \"indexStatus\": \"completed\",\n  ...\n}"
             }
           ]
         },
@@ -391,13 +510,16 @@
           "name": "POST Reindex Source",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/knowledge-sources/{{knowledgeSourceId}}/reindex",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "knowledge-sources", "{{knowledgeSourceId}}", "reindex"]
+              "path": [
+                "api",
+                "knowledge-sources",
+                "{{knowledgeSourceId}}",
+                "reindex"
+              ]
             }
           },
           "response": [
@@ -412,9 +534,7 @@
           "name": "DELETE Source",
           "request": {
             "method": "DELETE",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/knowledge-sources/{{knowledgeSourceId}}",
               "host": ["{{baseUrl}}"],
@@ -444,6 +564,7 @@
                   "if (pm.response.code === 200) {",
                   "  var jsonData = pm.response.json();",
                   "  pm.collectionVariables.set('conversationId', jsonData.conversationId);",
+                  "  pm.collectionVariables.set('messageId', jsonData.messageId);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -452,9 +573,7 @@
           ],
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"sessionId\": \"visitor-session-123\",\n  \"visitorId\": \"visitor-456\",\n  \"message\": \"Tell me about Earth\",\n  \"pageUrl\": \"https://example.com/contact\",\n  \"referrer\": \"https://google.com\"\n}"
@@ -469,7 +588,12 @@
             {
               "name": "Success",
               "code": 200,
-              "body": "{\n  \"reply\": \"The Earth is the third planet from the Sun...\",\n  \"sources\": [\n    { \"content\": \"The Earth is the third planet...\", \"chunkIndex\": 0 }\n  ],\n  \"conversationId\": \"uuid\"\n}"
+              "body": "{\n  \"reply\": \"The Earth is the third planet from the Sun...\",\n  \"sources\": [\n    { \"content\": \"...\", \"chunkIndex\": 0 }\n  ],\n  \"conversationId\": \"uuid\",\n  \"messageId\": \"uuid\"\n}"
+            },
+            {
+              "name": "Bot Not Found",
+              "code": 404,
+              "body": "{\n  \"error\": \"Bot not found\"\n}"
             }
           ]
         },
@@ -477,13 +601,17 @@
           "name": "GET Conversation Messages",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/chat/conversations/{{conversationId}}/messages",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "chat", "conversations", "{{conversationId}}", "messages"]
+              "path": [
+                "api",
+                "chat",
+                "conversations",
+                "{{conversationId}}",
+                "messages"
+              ]
             }
           },
           "response": [
@@ -491,6 +619,110 @@
               "name": "Success",
               "code": 200,
               "body": "[\n  {\n    \"id\": \"uuid\",\n    \"conversationId\": \"uuid\",\n    \"role\": \"user\",\n    \"content\": \"Tell me about Earth\",\n    \"createdAt\": \"...\"\n  },\n  {\n    \"id\": \"uuid\",\n    \"conversationId\": \"uuid\",\n    \"role\": \"assistant\",\n    \"content\": \"The Earth is the third planet...\",\n    \"sourcesUsed\": [...],\n    \"createdAt\": \"...\"\n  }\n]"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Widget (Embed)",
+      "item": [
+        {
+          "name": "GET Widget Config",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.collectionVariables.set('botId', jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/widget/{{embedKey}}/config",
+              "host": ["{{baseUrl}}"],
+              "path": ["widget", "{{embedKey}}", "config"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "code": 200,
+              "body": "{\n  \"id\": \"uuid\",\n  \"name\": \"My Support Bot\",\n  \"model\": \"gemini-2.0-flash\",\n  \"systemPrompt\": \"You are a helpful customer support assistant...\",\n  \"temperature\": 0.7,\n  \"widgetConfig\": {\n    \"primaryColor\": \"#4F46E5\",\n    \"position\": \"right\",\n    \"greeting\": \"Hello! How can I help you?\"\n  }\n}"
+            },
+            {
+              "name": "Bot Not Found",
+              "code": 404,
+              "body": "{\n  \"error\": \"Bot not found\"\n}"
+            },
+            {
+              "name": "Domain Not Allowed",
+              "code": 403,
+              "body": "{\n  \"error\": \"Domain not allowed\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST Widget Chat",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": \"widget-session-001\",\n  \"visitorId\": \"widget-visitor-001\",\n  \"message\": \"Hello! What can you help me with?\",\n  \"pageUrl\": \"https://example.com\",\n  \"referrer\": \"https://google.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/widget/{{embedKey}}/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["widget", "{{embedKey}}", "chat"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "code": 200,
+              "body": "{\n  \"reply\": \"...\",\n  \"sources\": [...],\n  \"conversationId\": \"uuid\",\n  \"messageId\": \"uuid\"\n}"
+            },
+            {
+              "name": "Bot Not Found",
+              "code": 404,
+              "body": "{\n  \"error\": \"Bot not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST Widget Feedback",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messageId\": \"{{messageId}}\",\n  \"feedbackType\": \"thumbs_up\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/widget/{{embedKey}}/feedback",
+              "host": ["{{baseUrl}}"],
+              "path": ["widget", "{{embedKey}}", "feedback"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "code": 200,
+              "body": "{\n  \"success\": true\n}"
+            },
+            {
+              "name": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"error\": \"feedbackType must be thumbs_up, thumbs_down, or none\"\n}"
             }
           ]
         }

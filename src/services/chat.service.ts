@@ -2,6 +2,7 @@ import { prisma } from "../lib/prisma";
 import { getChatModel } from "../lib/gemini";
 import embeddingService from "./embedding.service";
 import { HumanMessage, AIMessage, SystemMessage } from "@langchain/core/messages";
+import AppError from "../utils/AppError";
 
 interface ChatRequest {
   sessionId: string;
@@ -24,7 +25,7 @@ interface ChatResponse {
 class ChatService {
   async chat(botId: string, input: ChatRequest): Promise<ChatResponse> {
     const bot = await prisma.bot.findUnique({ where: { id: botId } });
-    if (!bot) throw new Error("Bot not found");
+    if (!bot) throw new AppError("Bot not found", 404);
 
     const conversation = await this.getOrCreateConversation(botId, input);
 

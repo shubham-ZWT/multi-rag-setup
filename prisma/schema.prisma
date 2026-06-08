@@ -19,6 +19,8 @@ model User {
   fullName      String?   @map("full_name")
   role          Role      @default(USER) @map("role")
   emailVerified Boolean   @default(false) @map("email_verified")
+  resetPasswordToken  String?   @unique @map("reset_password_token")
+  resetPasswordExpires DateTime? @map("reset_password_expires")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
   deletedAt     DateTime? @map("deleted_at")

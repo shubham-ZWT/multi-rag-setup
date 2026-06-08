@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma";
 import crypto from "node:crypto";
+import AppError from "../utils/AppError";
 
 interface UpdateBotInput {
   name?: string;
@@ -43,10 +44,10 @@ class BotService {
   async updateBot(botId: string, userId: string, updates: UpdateBotInput) {
     const existing = await prisma.bot.findUnique({ where: { id: botId } });
     if (!existing) {
-      throw new Error("Bot not found");
+      throw new AppError("Bot not found", 404);
     }
     if (existing.userId !== userId) {
-      throw new Error("Forbidden");
+      throw new AppError("Forbidden", 403);
     }
 
     const slug = updates.slug || (updates.name ? generateSlug(updates.name) : undefined);

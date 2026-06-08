@@ -2,6 +2,7 @@ import { prisma } from "../lib/prisma";
 import embeddingService from "./embedding.service";
 import extractionService from "./extraction.service";
 import path from "node:path";
+import AppError from "../utils/AppError";
 
 class KnowledgeService {
   async uploadFile(
@@ -105,9 +106,9 @@ class KnowledgeService {
     const source = await prisma.knowledgeSource.findUnique({
       where: { id },
     });
-    if (!source) throw new Error("Knowledge source not found");
+    if (!source) throw new AppError("Knowledge source not found", 404);
     const bot = await prisma.bot.findUnique({ where: { id: source.botId } });
-    if (!bot || bot.userId !== userId) throw new Error("Forbidden");
+    if (!bot || bot.userId !== userId) throw new AppError("Forbidden", 403);
     return source;
   }
 
@@ -115,9 +116,9 @@ class KnowledgeService {
     const source = await prisma.knowledgeSource.findUnique({
       where: { id },
     });
-    if (!source) throw new Error("Knowledge source not found");
+    if (!source) throw new AppError("Knowledge source not found", 404);
     const bot = await prisma.bot.findUnique({ where: { id: source.botId } });
-    if (!bot || bot.userId !== userId) throw new Error("Forbidden");
+    if (!bot || bot.userId !== userId) throw new AppError("Forbidden", 403);
 
     if (source.fileUrl) {
       extractionService.cleanupFile(source.fileUrl);
@@ -133,9 +134,9 @@ class KnowledgeService {
     const source = await prisma.knowledgeSource.findUnique({
       where: { id },
     });
-    if (!source) throw new Error("Knowledge source not found");
+    if (!source) throw new AppError("Knowledge source not found", 404);
     const bot = await prisma.bot.findUnique({ where: { id: source.botId } });
-    if (!bot || bot.userId !== userId) throw new Error("Forbidden");
+    if (!bot || bot.userId !== userId) throw new AppError("Forbidden", 403);
 
     let text = source.contentRaw;
 
@@ -170,8 +171,8 @@ class KnowledgeService {
 
   private async validateBotOwnership(botId: string, userId: string) {
     const bot = await prisma.bot.findUnique({ where: { id: botId } });
-    if (!bot) throw new Error("Bot not found");
-    if (bot.userId !== userId) throw new Error("Forbidden");
+    if (!bot) throw new AppError("Bot not found", 404);
+    if (bot.userId !== userId) throw new AppError("Forbidden", 403);
     return bot;
   }
 
@@ -182,7 +183,7 @@ class KnowledgeService {
   ) {
     if (chunks.length === 0) return;
     if (chunks[0].embedding.length === 0) {
-      throw new Error("Embedding failed: check your GOOGLE_API_KEY");
+      throw new AppError("Embedding failed: check your GOOGLE_API_KEY", 500);
     }
 
     const vectorStr = (embedding: number[]) =>
