@@ -727,6 +727,59 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "GET Overview",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/overview",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "overview"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "code": 200,
+              "body": "{\n  \"daily\": [\n    {\n      \"totalMessages\": 42,\n      \"totalConversations\": 10,\n      \"uniqueVisitors\": 5,\n      \"totalTokensUsed\": 15000,\n      \"avgLatencyMs\": 120,\n      \"thumbsUp\": 8,\n      \"thumbsDown\": 2\n    }\n  ],\n  \"summary\": {\n    \"totalMessages\": 42,\n    \"totalConversations\": 10,\n    \"uniqueVisitors\": 5,\n    \"totalTokensUsed\": 15000,\n    \"avgLatencyMs\": 120,\n    \"thumbsUpPercent\": 80\n  }\n}"
+            },
+            {
+              "name": "Unauthorized",
+              "code": 401,
+              "body": "{\n  \"error\": \"Unauthorized\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET Bot Analytics",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/bots/{{botId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "bots", "{{botId}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "code": 200,
+              "body": "{\n  \"daily\": [\n    {\n      \"totalMessages\": 42,\n      \"totalConversations\": 10,\n      \"uniqueVisitors\": 5,\n      \"totalTokensUsed\": 15000,\n      \"avgLatencyMs\": 120,\n      \"thumbsUp\": 8,\n      \"thumbsDown\": 2\n    }\n  ],\n  \"summary\": {\n    \"totalMessages\": 42,\n    \"totalConversations\": 10,\n    \"uniqueVisitors\": 5,\n    \"totalTokensUsed\": 15000,\n    \"avgLatencyMs\": 120,\n    \"thumbsUpPercent\": 80\n  }\n}"
+            },
+            {
+              "name": "Bot Not Found",
+              "code": 404,
+              "body": "{\n  \"error\": \"Bot not found\"\n}"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

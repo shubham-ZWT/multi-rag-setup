@@ -21,7 +21,7 @@ class AnalyticsService {
           CASE WHEN COUNT(DISTINCT c.id) > 0
             THEN ROUND(COUNT(m.id)::decimal / COUNT(DISTINCT c.id), 2) ELSE 0
           END AS avg_messages_per_conv,
-          COALESCE(ROUND(AVG(m.confidence_score), 2), 0) AS avg_confidence_score,
+          COALESCE(ROUND(AVG(m.confidence_score)::numeric, 2), 0) AS avg_confidence_score,
           COALESCE(SUM(m.input_tokens + m.output_tokens), 0) AS total_tokens_used,
           COALESCE(ROUND(AVG(m.latency_ms)), 0) AS avg_latency_ms,
           COUNT(DISTINCT mf.id) FILTER (WHERE mf.feedback_type = 'thumbs_up') AS thumbs_up,
