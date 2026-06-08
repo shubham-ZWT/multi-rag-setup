@@ -8,6 +8,7 @@ import authRoutes from "./routes/auth.routes";
 import botRoutes from "./routes/bot.routes";
 import knowledgeRoutes from "./routes/knowledge.routes";
 import chatRoutes from "./routes/chat.routes";
+import analyticsRoutes from "./routes/analytics.routes";
 import widgetRoutes from "./routes/widget";
 import { verifyToken, authorizeRole } from "./middleware/auth.middleware";
 import { Role } from "@prisma/client";
@@ -37,10 +38,26 @@ app.get("/widget.js", (req, res) => {
 
 // Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/bots", verifyToken, authorizeRole([Role.USER, Role.ADMIN]), botRoutes);
-app.use("/api/knowledge-sources", verifyToken, authorizeRole([Role.USER, Role.ADMIN]), knowledgeRoutes);
+app.use(
+  "/api/bots",
+  verifyToken,
+  authorizeRole([Role.USER, Role.ADMIN]),
+  botRoutes,
+);
+app.use(
+  "/api/knowledge-sources",
+  verifyToken,
+  authorizeRole([Role.USER, Role.ADMIN]),
+  knowledgeRoutes,
+);
 app.use("/api/chat", chatRoutes);
 app.use("/widget", widgetRoutes);
+app.use(
+  "/api/analytics",
+  verifyToken,
+  authorizeRole([Role.USER, Role.ADMIN]),
+  analyticsRoutes,
+);
 
 //Protected route example
 app.get("/api/protected", verifyToken, (req, res) => {

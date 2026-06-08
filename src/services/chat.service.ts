@@ -108,6 +108,18 @@ class ChatService {
       },
     });
 
+    try {
+      await this.updateMessageAnalytics(
+        bot.id,
+        conversation,
+        inputTokensEst,
+        outputTokensEst,
+        latencyMs,
+      );
+    } catch (err) {
+      console.error("Analytics update failed:", err);
+    }
+
     return { reply: replyText, sources, conversationId: conversation.id, messageId: assistantMsg.id };
   }
 
@@ -117,6 +129,49 @@ class ChatService {
       orderBy: { createdAt: "asc" },
     });
     return messages;
+  }
+
+  private async updateMessageAnalytics(
+    botId: string,
+    conversation: { id: string; messageCount: number },
+    inputTokens: number,
+    outputTokens: number,
+    latencyMs: number,
+  ) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const isNewConversation = conversation.messageCount === 0;
+
+    const existing = await prisma.botAnalyticsDaily.findUnique({
+      where: { botId_date: { botId, date: today } },
+    });
+
+    const oldCount = existing?.totalMessages ?? 0;
+    const oldLatency = existing?.avgLatencyMs ?? 0;
+    const newAvgLatency = oldCount > 0
+      ? Math.round((oldLatency * oldCount + latencyMs) / (oldCount + 1))
+      : latencyMs;
+
+    await prisma.botAnalyticsDaily.upsert({
+      where: { botId_date: { botId, date: today } },
+      create: {
+        botId,
+        date: today,
+        totalConversations: 1,
+        totalMessages: 1,
+        uniqueVisitors: 1,
+        avgMessagesPerConv: 1,
+        totalTokensUsed: inputTokens + outputTokens,
+        avgLatencyMs: latencyMs,
+      },
+      update: {
+        totalMessages: { increment: 1 },
+        totalTokensUsed: { increment: inputTokens + outputTokens },
+        avgLatencyMs: newAvgLatency,
+        ...(isNewConversation && { totalConversations: { increment: 1 } }),
+      },
+    });
   }
 
   private async getOrCreateConversation(
