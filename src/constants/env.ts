@@ -6,6 +6,11 @@ export const allEnvsExist = () => {
     'DIRECT_URL',
     'GOOGLE_API_KEY',
     'GROQ_API_KEY',
+    'EMAIL_HOST',
+    'EMAIL_PORT',
+    'EMAIL_USER',
+    'EMAIL_PASS',
+    'EMAIL_FROM',
   ];
   const missingEnvs = envs.filter((env) => !process.env[env]);
   if (missingEnvs.length > 0) {

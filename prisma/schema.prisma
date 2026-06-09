@@ -16,10 +16,12 @@ model User {
   updatedAt            DateTime          @updatedAt @map("updated_at")
   deletedAt            DateTime?         @map("deleted_at")
   role                 Role              @default(USER) @map("role")
+  isVerified           Boolean           @default(false) @map("is_verified")
   resetPasswordExpires DateTime?         @map("reset_password_expires")
   resetPasswordToken   String?           @unique @map("reset_password_token")
   auditLogs            AuditLog[]
   bots                 Bot[]
+  emailOtps            EmailOtp[]
   invoices             Invoice[]
   knowledgeSources     KnowledgeSource[]
   subscriptions        Subscription[]
@@ -252,6 +254,20 @@ model Invoice {
   @@map("invoices")
 }
 
+
+model EmailOtp {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  otpHash   String   @map("otp_hash")
+  purpose   String   @default("registration") @map("purpose")
+  expiresAt DateTime @map("expires_at")
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, purpose])
+  @@map("email_otps")
+}
 
 enum Role {
   ADMIN

@@ -62,9 +62,12 @@ export default function Navbar() {
               {item.name}
             </Link>
           ))}
-          <Button isprimary={true} onClick={() => alert("Get Started clicked")}>
-            Get Started
-          </Button>
+          <Link href="/login" className={`transition-colors duration-200 ${linkHover}`}>
+            Login
+          </Link>
+          <Link href="/register">
+            <Button isprimary={true}>Register</Button>
+          </Link>
         </div>
 
         <button
@@ -104,15 +107,16 @@ export default function Navbar() {
                   {item.name}
                 </Link>
               ))}
-              <Button
-                isprimary={true}
-                onClick={() => {
-                  setMenuOpen(false);
-                  alert("Get Started clicked");
-                }}
+              <Link
+                href="/login"
+                onClick={() => setMenuOpen(false)}
+                className={`text-base font-medium transition-colors duration-200 ${linkHover}`}
               >
-                Get Started
-              </Button>
+                Login
+              </Link>
+              <Link href="/register" onClick={() => setMenuOpen(false)}>
+                <Button isprimary={true}>Register</Button>
+              </Link>
             </div>
           </div>
         </>

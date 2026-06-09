@@ -19,8 +19,41 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' });
   }
-  const result = await AuthService.login(email, password);
+  try {
+    const result = await AuthService.login(email, password);
+    res.status(200).json({ success: true, ...result });
+  } catch (error: any) {
+    if (error.requiresVerification) {
+      return res.status(403).json({
+        error: error.message,
+        requiresVerification: true,
+        userId: error.userId,
+      });
+    }
+    throw error;
+  }
+});
+
+export const verifyOtp = asyncHandler(async (req: Request, res: Response) => {
+  const { userId, otp } = req.body;
+
+  if (!userId || !otp) {
+    return res.status(400).json({ error: 'User ID and OTP are required' });
+  }
+
+  const result = await AuthService.verifyOtp(userId, otp);
   res.status(200).json({ success: true, ...result });
+});
+
+export const resendOtp = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required' });
+  }
+
+  const result = await AuthService.resendOtp(userId);
+  res.status(200).json(result);
 });
 
 export const forgotPassword = asyncHandler(
