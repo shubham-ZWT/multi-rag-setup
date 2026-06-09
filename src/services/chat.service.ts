@@ -1,8 +1,12 @@
 import { prisma } from "../lib/prisma";
 import { getChatModel } from "../lib/gemini";
 import embeddingService from "./embedding.service";
-import { HumanMessage, AIMessage, SystemMessage } from "@langchain/core/messages";
-import AppError from "../utils/AppError";
+import {
+  HumanMessage,
+  AIMessage,
+  SystemMessage,
+} from "@langchain/core/messages";
+import AppError from "../utils/appError";
 
 interface ChatRequest {
   sessionId: string;
@@ -81,7 +85,9 @@ class ChatService {
     const response = await model.invoke(messages);
     const latencyMs = Date.now() - startTime;
     const replyText = this.stripThinkTags(
-      typeof response.content === "string" ? response.content : JSON.stringify(response.content),
+      typeof response.content === "string"
+        ? response.content
+        : JSON.stringify(response.content),
     );
 
     const inputTokensEst = Math.ceil(input.message.length / 4);
@@ -120,7 +126,12 @@ class ChatService {
       console.error("Analytics update failed:", err);
     }
 
-    return { reply: replyText, sources, conversationId: conversation.id, messageId: assistantMsg.id };
+    return {
+      reply: replyText,
+      sources,
+      conversationId: conversation.id,
+      messageId: assistantMsg.id,
+    };
   }
 
   async getMessages(conversationId: string) {
@@ -149,9 +160,10 @@ class ChatService {
 
     const oldCount = existing?.totalMessages ?? 0;
     const oldLatency = existing?.avgLatencyMs ?? 0;
-    const newAvgLatency = oldCount > 0
-      ? Math.round((oldLatency * oldCount + latencyMs) / (oldCount + 1))
-      : latencyMs;
+    const newAvgLatency =
+      oldCount > 0
+        ? Math.round((oldLatency * oldCount + latencyMs) / (oldCount + 1))
+        : latencyMs;
 
     await prisma.botAnalyticsDaily.upsert({
       where: { botId_date: { botId, date: today } },
@@ -174,10 +186,7 @@ class ChatService {
     });
   }
 
-  private async getOrCreateConversation(
-    botId: string,
-    input: ChatRequest,
-  ) {
+  private async getOrCreateConversation(botId: string, input: ChatRequest) {
     const existing = await prisma.conversation.findFirst({
       where: {
         botId,

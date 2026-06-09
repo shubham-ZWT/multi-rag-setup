@@ -21,7 +21,9 @@ export const uploadFile = asyncHandler(async (req: Request, res: Response) => {
 export const addText = asyncHandler(async (req: Request, res: Response) => {
   const { botId, name, content } = req.body;
   if (!botId || !name || !content) {
-    return res.status(400).json({ error: "botId, name, and content are required" });
+    return res
+      .status(400)
+      .json({ error: "botId, name, and content are required" });
   }
   const result = await KnowledgeService.addText(
     req.user!.userId,
@@ -37,11 +39,7 @@ export const addUrl = asyncHandler(async (req: Request, res: Response) => {
   if (!botId || !url) {
     return res.status(400).json({ error: "botId and url are required" });
   }
-  const result = await KnowledgeService.addUrl(
-    req.user!.userId,
-    botId,
-    url,
-  );
+  const result = await KnowledgeService.addUrl(req.user!.userId, botId, url);
   res.status(201).json(result);
 });
 
@@ -63,20 +61,18 @@ export const getSource = asyncHandler(async (req: Request, res: Response) => {
   res.json(source);
 });
 
-export const deleteSource = asyncHandler(async (req: Request, res: Response) => {
-  const id = req.params.id as string;
-  const result = await KnowledgeService.deleteSource(
-    id,
-    req.user!.userId,
-  );
-  res.json(result);
-});
+export const deleteSource = asyncHandler(
+  async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    const result = await KnowledgeService.deleteSource(id, req.user!.userId);
+    res.json(result);
+  },
+);
 
-export const reindexSource = asyncHandler(async (req: Request, res: Response) => {
-  const id = req.params.id as string;
-  const result = await KnowledgeService.reindexSource(
-    id,
-    req.user!.userId,
-  );
-  res.json(result);
-});
+export const reindexSource = asyncHandler(
+  async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    const result = await KnowledgeService.reindexSource(id, req.user!.userId);
+    res.json(result);
+  },
+);

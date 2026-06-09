@@ -1,6 +1,6 @@
 import { prisma } from "../lib/prisma";
 import crypto from "node:crypto";
-import AppError from "../utils/AppError";
+import AppError from "../utils/appError";
 
 interface UpdateBotInput {
   name?: string;
@@ -50,20 +50,31 @@ class BotService {
       throw new AppError("Forbidden", 403);
     }
 
-    const slug = updates.slug || (updates.name ? generateSlug(updates.name) : undefined);
+    const slug =
+      updates.slug || (updates.name ? generateSlug(updates.name) : undefined);
 
     const bot = await prisma.bot.update({
       where: { id: botId },
       data: {
         ...(updates.name !== undefined && { name: updates.name }),
         ...(slug !== undefined && { slug }),
-        ...(updates.systemPrompt !== undefined && { systemPrompt: updates.systemPrompt }),
+        ...(updates.systemPrompt !== undefined && {
+          systemPrompt: updates.systemPrompt,
+        }),
         ...(updates.model !== undefined && { model: updates.model }),
-        ...(updates.temperature !== undefined && { temperature: updates.temperature }),
-        ...(updates.maxTokens !== undefined && { maxTokens: updates.maxTokens }),
+        ...(updates.temperature !== undefined && {
+          temperature: updates.temperature,
+        }),
+        ...(updates.maxTokens !== undefined && {
+          maxTokens: updates.maxTokens,
+        }),
         ...(updates.status !== undefined && { status: updates.status }),
-        ...(updates.widgetConfig !== undefined && { widgetConfig: updates.widgetConfig as object }),
-        ...(updates.allowedDomains !== undefined && { allowedDomains: updates.allowedDomains as string[] }),
+        ...(updates.widgetConfig !== undefined && {
+          widgetConfig: updates.widgetConfig as object,
+        }),
+        ...(updates.allowedDomains !== undefined && {
+          allowedDomains: updates.allowedDomains as string[],
+        }),
         ...(updates.isPublic !== undefined && { isPublic: updates.isPublic }),
       },
     });

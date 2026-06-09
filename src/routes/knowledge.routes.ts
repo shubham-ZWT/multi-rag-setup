@@ -9,8 +9,12 @@ import {
   deleteSource,
   reindexSource,
 } from "../controllers/knowledge.controller";
+import { verifyToken, authorizeRole } from "../middleware/auth.middleware";
+import { Role } from "@prisma/client";
 
 const router = Router();
+
+router.use(verifyToken, authorizeRole([Role.USER, Role.ADMIN]));
 
 router.post("/upload", upload.single("file"), uploadFile);
 router.post("/text", addText);

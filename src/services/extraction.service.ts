@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import AppError from "../utils/AppError";
+import AppError from "../utils/appError";
 
 class ExtractionService {
   async extractFromFile(filePath: string, mimeType: string): Promise<string> {

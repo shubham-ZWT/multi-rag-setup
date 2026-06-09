@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { Role } from "@prisma/client";
-import AppError from "../utils/AppError";
+import AppError from "../utils/appError";
+import { FORBIDDEN, INVALID_TOKEN, TOKEN_MISSING } from "../constants/errors";
 
 interface JwtPayload {
   userId: string;
@@ -20,7 +21,7 @@ const verifyToken = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
   if (!token) {
-    return next(new AppError("Access token is missing", 401));
+    return next(TOKEN_MISSING());
   }
   try {
     const decoded = jwt.verify(
@@ -30,14 +31,14 @@ const verifyToken = (req: Request, res: Response, next: NextFunction) => {
     req.user = decoded;
     next();
   } catch (err) {
-    return next(new AppError("Invalid or expired token", 403));
+    return next(INVALID_TOKEN());
   }
 };
 
 const authorizeRole = (roles: Role[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user || !roles.includes(req.user.role)) {
-      return next(new AppError("Forbidden: insufficient permissions", 403));
+      return next(FORBIDDEN());
     }
     next();
   };

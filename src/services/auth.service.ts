@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Role } from "@prisma/client";
 import crypto from "crypto";
-import AppError from "../utils/AppError";
+import AppError from "../utils/appError";
 
 class AuthService {
   register = async (email: string, password: string, fullName: string) => {

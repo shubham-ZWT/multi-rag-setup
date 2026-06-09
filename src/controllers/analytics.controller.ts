@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { prisma } from "../lib/prisma";
 import AnalyticsService from "../services/analytics.service";
-import AppError from "../utils/AppError";
+import AppError from "../utils/appError";
 
 export const getOverview = async (req: Request, res: Response) => {
   const userId = req.user!.userId;

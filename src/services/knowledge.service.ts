@@ -2,14 +2,10 @@ import { prisma } from "../lib/prisma";
 import embeddingService from "./embedding.service";
 import extractionService from "./extraction.service";
 import path from "node:path";
-import AppError from "../utils/AppError";
+import AppError from "../utils/appError";
 
 class KnowledgeService {
-  async uploadFile(
-    userId: string,
-    botId: string,
-    file: Express.Multer.File,
-  ) {
+  async uploadFile(userId: string, botId: string, file: Express.Multer.File) {
     const bot = await this.validateBotOwnership(botId, userId);
 
     const text = await extractionService.extractFromFile(
@@ -179,15 +175,19 @@ class KnowledgeService {
   private async insertChunks(
     knowledgeSourceId: string,
     botId: string,
-    chunks: { content: string; chunkIndex: number; tokenCount: number; embedding: number[] }[],
+    chunks: {
+      content: string;
+      chunkIndex: number;
+      tokenCount: number;
+      embedding: number[];
+    }[],
   ) {
     if (chunks.length === 0) return;
     if (chunks[0].embedding.length === 0) {
       throw new AppError("Embedding failed: check your GOOGLE_API_KEY", 500);
     }
 
-    const vectorStr = (embedding: number[]) =>
-      `[${embedding.join(",")}]`;
+    const vectorStr = (embedding: number[]) => `[${embedding.join(",")}]`;
 
     for (const chunk of chunks) {
       await prisma.$executeRawUnsafe(
