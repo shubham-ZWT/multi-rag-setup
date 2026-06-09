@@ -1,6 +1,6 @@
-import { Request, Response } from "express";
-import BotService from "../services/bot.service";
-import asyncHandler from "../utils/asyncHandler";
+import { Request, Response } from 'express';
+import BotService from '../services/bot.service';
+import asyncHandler from '../utils/asyncHandler';
 
 export const createBot = asyncHandler(async (req: Request, res: Response) => {
   const {
@@ -24,7 +24,7 @@ export const createBot = asyncHandler(async (req: Request, res: Response) => {
   ) {
     return res.status(400).json({
       error:
-        "Name, systemPrompt, model, temperature, and maxTokens are required",
+        'Name, systemPrompt, model, temperature, and maxTokens are required',
     });
   }
 
@@ -60,7 +60,7 @@ export const updateBot = asyncHandler(async (req: Request, res: Response) => {
   } = req.body;
 
   if (!id) {
-    return res.status(400).json({ error: "Bot ID is required" });
+    return res.status(400).json({ error: 'Bot ID is required' });
   }
 
   const result = await BotService.updateBot(id, req.user!.userId, {

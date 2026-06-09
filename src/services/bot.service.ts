@@ -1,6 +1,6 @@
-import { prisma } from "../lib/prisma";
-import crypto from "node:crypto";
-import AppError from "../utils/appError";
+import { prisma } from '../lib/prisma';
+import crypto from 'node:crypto';
+import AppError from '../utils/appError';
 
 interface UpdateBotInput {
   name?: string;
@@ -32,22 +32,22 @@ interface CreateBotInput {
 function generateSlug(name: string): string {
   return name
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
 }
 
 function generateEmbedKey(): string {
-  return `emb_${crypto.randomBytes(24).toString("hex")}`;
+  return `emb_${crypto.randomBytes(24).toString('hex')}`;
 }
 
 class BotService {
   async updateBot(botId: string, userId: string, updates: UpdateBotInput) {
     const existing = await prisma.bot.findUnique({ where: { id: botId } });
     if (!existing) {
-      throw new AppError("Bot not found", 404);
+      throw new AppError('Bot not found', 404);
     }
     if (existing.userId !== userId) {
-      throw new AppError("Forbidden", 403);
+      throw new AppError('Forbidden', 403);
     }
 
     const slug =
@@ -79,7 +79,7 @@ class BotService {
       },
     });
 
-    return { message: "Bot updated successfully", bot };
+    return { message: 'Bot updated successfully', bot };
   }
 
   async createBot(botData: CreateBotInput) {
@@ -98,7 +98,7 @@ class BotService {
         model: botData.model,
         temperature: botData.temperature,
         maxTokens: botData.maxTokens,
-        status: botData.status ?? "draft",
+        status: botData.status ?? 'draft',
         embedKey: generateEmbedKey(),
         widgetConfig: (botData.widgetConfig ?? {}) as object,
         allowedDomains: (botData.allowedDomains ?? []) as string[],
@@ -106,7 +106,7 @@ class BotService {
       },
     });
 
-    return { message: "Bot created successfully", bot };
+    return { message: 'Bot created successfully', bot };
   }
 }
 

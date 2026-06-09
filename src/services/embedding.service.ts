@@ -1,5 +1,5 @@
-import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import { getEmbeddings } from "../lib/gemini";
+import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
+import { getEmbeddings } from '../lib/gemini';
 
 interface ChunkResult {
   content: string;
@@ -15,7 +15,7 @@ class EmbeddingService {
     this.splitter = new RecursiveCharacterTextSplitter({
       chunkSize: 1000,
       chunkOverlap: 200,
-      separators: ["\n\n", "\n", ". ", " ", ""],
+      separators: ['\n\n', '\n', '. ', ' ', ''],
     });
   }
 

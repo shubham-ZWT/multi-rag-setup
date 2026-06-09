@@ -1,12 +1,12 @@
-import { prisma } from "../lib/prisma";
-import { getChatModel } from "../lib/gemini";
-import embeddingService from "./embedding.service";
+import { prisma } from '../lib/prisma';
+import { getChatModel } from '../lib/gemini';
+import embeddingService from './embedding.service';
 import {
   HumanMessage,
   AIMessage,
   SystemMessage,
-} from "@langchain/core/messages";
-import AppError from "../utils/appError";
+} from '@langchain/core/messages';
+import AppError from '../utils/appError';
 
 interface ChatRequest {
   sessionId: string;
@@ -29,14 +29,14 @@ interface ChatResponse {
 class ChatService {
   async chat(botId: string, input: ChatRequest): Promise<ChatResponse> {
     const bot = await prisma.bot.findUnique({ where: { id: botId } });
-    if (!bot) throw new AppError("Bot not found", 404);
+    if (!bot) throw new AppError('Bot not found', 404);
 
     const conversation = await this.getOrCreateConversation(botId, input);
 
     await prisma.message.create({
       data: {
         conversationId: conversation.id,
-        role: "user",
+        role: 'user',
         content: input.message,
         inputTokens: 0,
         outputTokens: 0,
@@ -59,11 +59,11 @@ class ChatService {
 
     const context = relevantChunks
       .map((c: any) => `[Source ${c.chunk_index}]: ${c.content}`)
-      .join("\n\n");
+      .join('\n\n');
 
     const recentMessages = await prisma.message.findMany({
       where: { conversationId: conversation.id },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: 'asc' },
       take: 20,
     });
 
@@ -74,7 +74,7 @@ class ChatService {
         `${bot.systemPrompt}\n\nUse the following context to answer the user's question. If you cannot answer from the context, say so.\n\nContext:\n${context}`,
       ),
       ...recentMessages.map((m) =>
-        m.role === "user"
+        m.role === 'user'
           ? new HumanMessage(m.content)
           : new AIMessage(m.content),
       ),
@@ -85,7 +85,7 @@ class ChatService {
     const response = await model.invoke(messages);
     const latencyMs = Date.now() - startTime;
     const replyText = this.stripThinkTags(
-      typeof response.content === "string"
+      typeof response.content === 'string'
         ? response.content
         : JSON.stringify(response.content),
     );
@@ -96,7 +96,7 @@ class ChatService {
     const assistantMsg = await prisma.message.create({
       data: {
         conversationId: conversation.id,
-        role: "assistant",
+        role: 'assistant',
         content: replyText,
         sourcesUsed: sources as any,
         confidenceScore: 0,
@@ -123,7 +123,7 @@ class ChatService {
         latencyMs,
       );
     } catch (err) {
-      console.error("Analytics update failed:", err);
+      console.error('Analytics update failed:', err);
     }
 
     return {
@@ -137,7 +137,7 @@ class ChatService {
   async getMessages(conversationId: string) {
     const messages = await prisma.message.findMany({
       where: { conversationId },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: 'asc' },
     });
     return messages;
   }
@@ -192,7 +192,7 @@ class ChatService {
         botId,
         sessionId: input.sessionId,
       },
-      orderBy: { startedAt: "desc" },
+      orderBy: { startedAt: 'desc' },
     });
 
     if (existing) {
@@ -220,7 +220,7 @@ class ChatService {
     embedding: number[],
     limit: number = 5,
   ): Promise<any[]> {
-    const vectorStr = `[${embedding.join(",")}]`;
+    const vectorStr = `[${embedding.join(',')}]`;
 
     const chunks = await prisma.$queryRawUnsafe(
       `SELECT content, chunk_index
@@ -237,7 +237,7 @@ class ChatService {
   }
 
   private stripThinkTags(text: string): string {
-    return text.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+    return text.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
   }
 }
 

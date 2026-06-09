@@ -1,5 +1,5 @@
-import AppError from "../utils/appError";
-import { Prisma } from "@prisma/client";
+import AppError from '../utils/appError';
+import { Prisma } from '@prisma/client';
 
 export const globalErrorHandler = (err: any, req: any, res: any, next: any) => {
   console.error(err?.stack || err);
@@ -9,22 +9,22 @@ export const globalErrorHandler = (err: any, req: any, res: any, next: any) => {
   }
 
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
-    if (err.code === "P2002") {
-      return res.status(409).json({ error: "Resource already exists" });
+    if (err.code === 'P2002') {
+      return res.status(409).json({ error: 'Resource already exists' });
     }
-    if (err.code === "P2025") {
-      return res.status(404).json({ error: "Resource not found" });
+    if (err.code === 'P2025') {
+      return res.status(404).json({ error: 'Resource not found' });
     }
-    return res.status(400).json({ error: "Database error" });
+    return res.status(400).json({ error: 'Database error' });
   }
 
-  if (err.name === "MulterError") {
+  if (err.name === 'MulterError') {
     return res.status(400).json({ error: err.message });
   }
 
-  if (err.name === "JsonWebTokenError" || err.name === "TokenExpiredError") {
-    return res.status(401).json({ error: "Invalid or expired token" });
+  if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+    return res.status(401).json({ error: 'Invalid or expired token' });
   }
 
-  res.status(500).json({ error: "Internal server error" });
+  res.status(500).json({ error: 'Internal server error' });
 };

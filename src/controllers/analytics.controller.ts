@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from "express";
-import { prisma } from "../lib/prisma";
-import AnalyticsService from "../services/analytics.service";
-import AppError from "../utils/appError";
+import { Request, Response, NextFunction } from 'express';
+import { prisma } from '../lib/prisma';
+import AnalyticsService from '../services/analytics.service';
+import AppError from '../utils/appError';
 
 export const getOverview = async (req: Request, res: Response) => {
   const userId = req.user!.userId;
@@ -18,7 +18,7 @@ export const getBotAnalytics = async (
     const botId = req.params.id as string;
     const bot = await prisma.bot.findUnique({ where: { id: botId } });
     if (!bot || bot.userId !== req.user!.userId) {
-      throw new AppError("Bot not found", 404);
+      throw new AppError('Bot not found', 404);
     }
     const result = await AnalyticsService.getBotAnalytics(botId);
     res.json(result);

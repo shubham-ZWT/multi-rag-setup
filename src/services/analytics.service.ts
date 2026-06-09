@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma";
+import { prisma } from '../lib/prisma';
 
 class AnalyticsService {
   async aggregateDaily() {
@@ -59,16 +59,16 @@ class AnalyticsService {
   async getOverview(userId: string) {
     const rows = await prisma.botAnalyticsDaily.findMany({
       where: { bot: { userId } },
-      orderBy: { date: "desc" },
+      orderBy: { date: 'desc' },
       take: 30,
     });
     return this.buildAnalyticsResponse(rows);
   }
-  
+
   async getBotAnalytics(botId: string) {
     const rows = await prisma.botAnalyticsDaily.findMany({
       where: { botId },
-      orderBy: { date: "desc" },
+      orderBy: { date: 'desc' },
       take: 30,
     });
     return this.buildAnalyticsResponse(rows);

@@ -1,8 +1,8 @@
-import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
-import { Role } from "@prisma/client";
-import AppError from "../utils/appError";
-import { FORBIDDEN, INVALID_TOKEN, TOKEN_MISSING } from "../constants/errors";
+import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+import { Role } from '@prisma/client';
+import AppError from '../utils/appError';
+import { FORBIDDEN, INVALID_TOKEN, TOKEN_MISSING } from '../constants/errors';
 
 interface JwtPayload {
   userId: string;
@@ -18,8 +18,8 @@ declare global {
 }
 
 const verifyToken = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
   if (!token) {
     return next(TOKEN_MISSING());
   }

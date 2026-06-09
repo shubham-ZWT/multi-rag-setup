@@ -1,9 +1,9 @@
-import { prisma } from "../lib/prisma";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import { Role } from "@prisma/client";
-import crypto from "crypto";
-import AppError from "../utils/appError";
+import { prisma } from '../lib/prisma';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { Role } from '@prisma/client';
+import crypto from 'crypto';
+import AppError from '../utils/appError';
 
 class AuthService {
   register = async (email: string, password: string, fullName: string) => {
@@ -16,8 +16,8 @@ class AuthService {
         role: Role.USER,
       },
     });
-    console.log("Registered user:", { email, fullName });
-    return { message: "User registered successfully" };
+    console.log('Registered user:', { email, fullName });
+    return { message: 'User registered successfully' };
   };
 
   login = async (email: string, password: string) => {
@@ -27,21 +27,21 @@ class AuthService {
       },
     });
     if (!user) {
-      throw new AppError("Invalid email or password", 401);
+      throw new AppError('Invalid email or password', 401);
     }
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
-      throw new AppError("Invalid email or password", 401);
+      throw new AppError('Invalid email or password', 401);
     }
     const token = jwt.sign(
       { userId: user.id, role: user.role },
       process.env.JWT_SECRET as string,
       {
-        expiresIn: "1h",
+        expiresIn: '1h',
       },
     );
-    console.log("Logging in user:", { email });
-    return { message: "User logged in successfully", token };
+    console.log('Logging in user:', { email });
+    return { message: 'User logged in successfully', token };
   };
 
   forgotPassword = async (email: string) => {
@@ -51,10 +51,10 @@ class AuthService {
       },
     });
     if (!user) {
-      throw new AppError("User not found", 404);
+      throw new AppError('User not found', 404);
     }
 
-    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetToken = crypto.randomBytes(32).toString('hex');
     await prisma.user.update({
       where: {
         email,
@@ -64,9 +64,9 @@ class AuthService {
         resetPasswordExpires: new Date(Date.now() + 3600000), // Token valid for 1 hour
       },
     });
-    console.log("Password reset requested for user:", { email });
+    console.log('Password reset requested for user:', { email });
     return {
-      message: "Password reset token generated successfully",
+      message: 'Password reset token generated successfully',
       resetToken,
     };
   };
@@ -81,7 +81,7 @@ class AuthService {
       },
     });
     if (!user) {
-      throw new AppError("Invalid or expired reset token", 400);
+      throw new AppError('Invalid or expired reset token', 400);
     }
     const passwordHash = await bcrypt.hash(newPassword, 10);
     await prisma.user.update({
@@ -94,8 +94,8 @@ class AuthService {
         resetPasswordExpires: null,
       },
     });
-    console.log("Password reset for user:", { email: user.email });
-    return { message: "Password reset successfully" };
+    console.log('Password reset for user:', { email: user.email });
+    return { message: 'Password reset successfully' };
   };
 }
 

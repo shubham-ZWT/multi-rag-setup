@@ -1,6 +1,6 @@
-import { Request, Response } from "express";
-import AuthService from "../services/auth.service";
-import asyncHandler from "../utils/asyncHandler";
+import { Request, Response } from 'express';
+import AuthService from '../services/auth.service';
+import asyncHandler from '../utils/asyncHandler';
 
 export const register = asyncHandler(async (req: Request, res: Response) => {
   const { email, password, fullName } = req.body;
@@ -8,7 +8,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   if (!email || !password || !fullName) {
     return res
       .status(400)
-      .json({ error: "Email, password, and full name are required" });
+      .json({ error: 'Email, password, and full name are required' });
   }
   const result = await AuthService.register(email, password, fullName);
   res.status(201).json(result);
@@ -17,7 +17,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    return res.status(400).json({ error: "Email and password are required" });
+    return res.status(400).json({ error: 'Email and password are required' });
   }
   const result = await AuthService.login(email, password);
   res.status(200).json({ success: true, ...result });
@@ -27,7 +27,7 @@ export const forgotPassword = asyncHandler(
   async (req: Request, res: Response) => {
     const { email } = req.body;
     if (!email) {
-      return res.status(400).json({ error: "Email is required" });
+      return res.status(400).json({ error: 'Email is required' });
     }
     const result = await AuthService.forgotPassword(email);
     res.status(200).json({ success: true, ...result });
@@ -42,7 +42,7 @@ export const resetPassword = asyncHandler(
     if (!resetToken || !newPassword) {
       return res
         .status(400)
-        .json({ error: "Reset token and new password are required" });
+        .json({ error: 'Reset token and new password are required' });
     }
     const result = await AuthService.resetPassword(newPassword, resetToken);
     res.status(200).json({ success: true, ...result });

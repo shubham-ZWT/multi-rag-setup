@@ -1,20 +1,20 @@
-import fs from "node:fs";
-import path from "node:path";
-import AppError from "../utils/appError";
+import fs from 'node:fs';
+import path from 'node:path';
+import AppError from '../utils/appError';
 
 class ExtractionService {
   async extractFromFile(filePath: string, mimeType: string): Promise<string> {
-    if (mimeType === "application/pdf") {
+    if (mimeType === 'application/pdf') {
       return this.extractPDF(filePath);
     }
-    if (mimeType === "text/plain") {
-      return fs.readFileSync(filePath, "utf-8");
+    if (mimeType === 'text/plain') {
+      return fs.readFileSync(filePath, 'utf-8');
     }
     throw new AppError(`Unsupported mime type: ${mimeType}`, 400);
   }
 
   private async extractPDF(filePath: string): Promise<string> {
-    const { PDFParse } = await import("pdf-parse");
+    const { PDFParse } = await import('pdf-parse');
     const buffer = new Uint8Array(fs.readFileSync(filePath));
     const parser = new PDFParse({ data: buffer });
     const result = await parser.getText();
@@ -22,11 +22,11 @@ class ExtractionService {
   }
 
   async fetchFromUrl(url: string): Promise<string> {
-    const https = await import("node:https");
-    const http = await import("node:http");
+    const https = await import('node:https');
+    const http = await import('node:http');
 
     return new Promise((resolve, reject) => {
-      const client = url.startsWith("https") ? https : http;
+      const client = url.startsWith('https') ? https : http;
       client
         .get(url, (res) => {
           if (
@@ -38,11 +38,11 @@ class ExtractionService {
             this.fetchFromUrl(res.headers.location).then(resolve).catch(reject);
             return;
           }
-          let data = "";
-          res.on("data", (chunk) => (data += chunk));
-          res.on("end", () => resolve(data));
+          let data = '';
+          res.on('data', (chunk) => (data += chunk));
+          res.on('end', () => resolve(data));
         })
-        .on("error", reject);
+        .on('error', reject);
     });
   }
 

@@ -1,5 +1,5 @@
-import { Router } from "express";
-import { upload } from "../middleware/upload.middleware";
+import { Router } from 'express';
+import { upload } from '../middleware/upload.middleware';
 import {
   uploadFile,
   addText,
@@ -8,20 +8,20 @@ import {
   getSource,
   deleteSource,
   reindexSource,
-} from "../controllers/knowledge.controller";
-import { verifyToken, authorizeRole } from "../middleware/auth.middleware";
-import { Role } from "@prisma/client";
+} from '../controllers/knowledge.controller';
+import { verifyToken, authorizeRole } from '../middleware/auth.middleware';
+import { Role } from '@prisma/client';
 
 const router = Router();
 
 router.use(verifyToken, authorizeRole([Role.USER, Role.ADMIN]));
 
-router.post("/upload", upload.single("file"), uploadFile);
-router.post("/text", addText);
-router.post("/url", addUrl);
-router.get("/", listSources);
-router.get("/:id", getSource);
-router.delete("/:id", deleteSource);
-router.post("/:id/reindex", reindexSource);
+router.post('/upload', upload.single('file'), uploadFile);
+router.post('/text', addText);
+router.post('/url', addUrl);
+router.get('/', listSources);
+router.get('/:id', getSource);
+router.delete('/:id', deleteSource);
+router.post('/:id/reindex', reindexSource);
 
 export default router;

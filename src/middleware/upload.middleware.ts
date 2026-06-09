@@ -1,9 +1,9 @@
-import multer from "multer";
-import path from "node:path";
-import { v4 as uuidv4 } from "uuid";
-import fs from "node:fs";
+import multer from 'multer';
+import path from 'node:path';
+import { v4 as uuidv4 } from 'uuid';
+import fs from 'node:fs';
 
-const uploadDir = process.env.UPLOAD_DIR || "uploads";
+const uploadDir = process.env.UPLOAD_DIR || 'uploads';
 
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -25,11 +25,11 @@ const fileFilter = (
   cb: multer.FileFilterCallback,
 ) => {
   const allowedMimes = [
-    "application/pdf",
-    "text/plain",
-    "text/html",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    'application/pdf',
+    'text/plain',
+    'text/html',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   ];
   if (allowedMimes.includes(file.mimetype)) {
     cb(null, true);
