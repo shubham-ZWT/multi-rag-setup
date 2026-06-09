@@ -64,7 +64,7 @@ class AnalyticsService {
     });
     return this.buildAnalyticsResponse(rows);
   }
-
+  
   async getBotAnalytics(botId: string) {
     const rows = await prisma.botAnalyticsDaily.findMany({
       where: { botId },
