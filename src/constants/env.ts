@@ -11,6 +11,7 @@ export const allEnvsExist = () => {
     'EMAIL_USER',
     'EMAIL_PASS',
     'EMAIL_FROM',
+    'JWT_REFRESH_SECRET',
   ];
   const missingEnvs = envs.filter((env) => !process.env[env]);
   if (missingEnvs.length > 0) {

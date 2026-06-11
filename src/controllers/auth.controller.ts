@@ -81,3 +81,17 @@ export const resetPassword = asyncHandler(
     res.status(200).json({ success: true, ...result });
   },
 );
+
+export const refresh = asyncHandler(async (req: Request, res: Response) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) {
+    return res.status(400).json({ error: 'Refresh token is required' });
+  }
+  const result = await AuthService.refreshAccessToken(refreshToken);
+  res.status(200).json({ success: true, ...result });
+});
+
+export const logout = asyncHandler(async (req: Request, res: Response) => {
+  const result = await AuthService.logout(req.user!.userId);
+  res.status(200).json(result);
+});

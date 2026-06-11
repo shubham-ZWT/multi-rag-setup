@@ -7,3 +7,7 @@ export const INVALID_TOKEN = () =>
   new AppError('Invalid or expired token', 401);
 export const FORBIDDEN = () => new AppError('Forbidden', 403);
 export const NOT_FOUND = () => new AppError('Not Found', 404);
+export const INVALID_REFRESH_TOKEN = () =>
+  new AppError('Invalid or expired refresh token', 401);
+export const REFRESH_TOKEN_MISSING = () =>
+  new AppError('Refresh token is required', 400);

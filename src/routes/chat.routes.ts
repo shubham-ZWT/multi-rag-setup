@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import { chat, getMessages } from '../controllers/chat.controller';
 import { verifyToken, authorizeRole } from '../middleware/auth.middleware';
+import { chatLimiter } from '../middleware/rateLimiter.middleware';
 import { Role } from '@prisma/client';
 
 const router = Router();
 
-router.post('/:botId', chat);
+router.post('/:botId', chatLimiter, chat);
 router.get(
   '/conversations/:id/messages',
   verifyToken,

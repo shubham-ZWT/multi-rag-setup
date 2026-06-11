@@ -19,6 +19,8 @@ model User {
   isVerified           Boolean           @default(false) @map("is_verified")
   resetPasswordExpires DateTime?         @map("reset_password_expires")
   resetPasswordToken   String?           @unique @map("reset_password_token")
+  refreshToken         String?           @unique @map("refresh_token")
+  refreshTokenExpires  DateTime?         @map("refresh_token_expires")
   auditLogs            AuditLog[]
   bots                 Bot[]
   emailOtps            EmailOtp[]

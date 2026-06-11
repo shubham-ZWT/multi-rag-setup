@@ -13,7 +13,24 @@ import {
   RESEND_COOLDOWN_SECONDS,
 } from '../utils/otp';
 
+const REFRESH_TOKEN_EXPIRY_DAYS = 7;
+
 class AuthService {
+  private generateRefreshToken = (userId: string) => {
+    const expiresAt = new Date(
+      Date.now() + REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
+    );
+    const token = jwt.sign(
+      { userId },
+      process.env.JWT_REFRESH_SECRET as string,
+      { expiresIn: `${REFRESH_TOKEN_EXPIRY_DAYS}d` },
+    );
+    return { token, expiresAt };
+  };
+
+  private hashRefreshToken = (token: string) =>
+    crypto.createHash('sha256').update(token).digest('hex');
+
   register = async (email: string, password: string, fullName: string) => {
     const passwordHash = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
@@ -84,8 +101,21 @@ class AuthService {
         expiresIn: '1h',
       },
     );
+
+    const { token: refreshToken, expiresAt: refreshTokenExpires } =
+      this.generateRefreshToken(user.id);
+    const hashedRefreshToken = this.hashRefreshToken(refreshToken);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        refreshToken: hashedRefreshToken,
+        refreshTokenExpires,
+      },
+    });
+
     console.log('Logging in user:', { email });
-    return { message: 'User logged in successfully', token };
+    return { message: 'User logged in successfully', token, refreshToken };
   };
 
   verifyOtp = async (userId: string, otp: string) => {
@@ -156,7 +186,19 @@ class AuthService {
       { expiresIn: '1h' },
     );
 
-    return { message: 'Email verified successfully', token };
+    const { token: refreshToken, expiresAt: refreshTokenExpires } =
+      this.generateRefreshToken(user.id);
+    const hashedRefreshToken = this.hashRefreshToken(refreshToken);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        refreshToken: hashedRefreshToken,
+        refreshTokenExpires,
+      },
+    });
+
+    return { message: 'Email verified successfully', token, refreshToken };
   };
 
   resendOtp = async (userId: string) => {
@@ -272,10 +314,72 @@ class AuthService {
         passwordHash,
         resetPasswordToken: null,
         resetPasswordExpires: null,
+        refreshToken: null,
+        refreshTokenExpires: null,
       },
     });
     console.log('Password reset for user:', { email: user.email });
     return { message: 'Password reset successfully' };
+  };
+
+  refreshAccessToken = async (refreshToken: string) => {
+    let payload: { userId: string };
+    try {
+      payload = jwt.verify(
+        refreshToken,
+        process.env.JWT_REFRESH_SECRET as string,
+      ) as { userId: string };
+    } catch {
+      throw new AppError('Invalid or expired refresh token', 401);
+    }
+
+    const hashedToken = this.hashRefreshToken(refreshToken);
+    const user = await prisma.user.findFirst({
+      where: {
+        id: payload.userId,
+        refreshToken: hashedToken,
+        refreshTokenExpires: { gt: new Date() },
+      },
+    });
+
+    if (!user) {
+      throw new AppError('Invalid or expired refresh token', 401);
+    }
+
+    const newToken = jwt.sign(
+      { userId: user.id, role: user.role },
+      process.env.JWT_SECRET as string,
+      { expiresIn: '1h' },
+    );
+
+    const { token: newRefreshToken, expiresAt: newRefreshTokenExpires } =
+      this.generateRefreshToken(user.id);
+    const newHashedRefreshToken = this.hashRefreshToken(newRefreshToken);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        refreshToken: newHashedRefreshToken,
+        refreshTokenExpires: newRefreshTokenExpires,
+      },
+    });
+
+    return {
+      message: 'Token refreshed successfully',
+      token: newToken,
+      refreshToken: newRefreshToken,
+    };
+  };
+
+  logout = async (userId: string) => {
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        refreshToken: null,
+        refreshTokenExpires: null,
+      },
+    });
+    return { message: 'Logged out successfully' };
   };
 }
 

@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import path from 'node:path';
 import { globalErrorHandler } from './middleware/errorHandler.middleware';
+import { globalLimiter } from './middleware/rateLimiter.middleware';
 import authRoutes from './routes/auth.routes';
 import botRoutes from './routes/bot.routes';
 import knowledgeRoutes from './routes/knowledge.routes';
@@ -41,6 +42,8 @@ app.use('/api/knowledge-sources', knowledgeRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/widget', widgetRoutes);
 app.use('/api/analytics', analyticsRoutes);
+
+app.use(globalLimiter);
 
 // 404 handler
 app.use((req, res) => {
