@@ -3,6 +3,7 @@ import { Albert_Sans, Barlow } from "next/font/google";
 import "./globals.css";
 import Navbar from "../components/common/Navbar";
 import Footer from "../components/common/Footer";
+import HomeThemeProvider from "../components/providers/HomeThemeProvider";
 
 const albert_Sans = Albert_Sans({
   subsets: ["latin"],
@@ -34,9 +35,11 @@ export default function RootLayout({
       className={`${albert_Sans.variable} ${barlow.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Navbar />
-        {children}
-        <Footer />
+        <HomeThemeProvider>
+          <Navbar />
+          {children}
+          <Footer />
+        </HomeThemeProvider>
       </body>
     </html>
   );

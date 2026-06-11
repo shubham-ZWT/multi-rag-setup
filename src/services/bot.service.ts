@@ -29,6 +29,12 @@ interface CreateBotInput {
   isPublic?: boolean;
 }
 
+interface PaginationOptions {
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
 function generateSlug(name: string): string {
   return name
     .toLowerCase()
@@ -82,6 +88,17 @@ class BotService {
     return { message: 'Bot updated successfully', bot };
   }
 
+  async getBot(botId: string, userId: string) {
+    const bot = await prisma.bot.findUnique({ where: { id: botId } });
+    if (!bot) {
+      throw new AppError('Bot not found', 404);
+    }
+    if (bot.userId !== userId) {
+      throw new AppError('Forbidden', 403);
+    }
+    return { bot };
+  }
+
   async createBot(botData: CreateBotInput) {
     const slug = botData.slug || generateSlug(botData.name);
 
@@ -107,6 +124,78 @@ class BotService {
     });
 
     return { message: 'Bot created successfully', bot };
+  }
+
+  async getUserBots(userId: string, options: PaginationOptions = {}) {
+    const { page = 1, limit = 10, search = '' } = options;
+    const skip = (page - 1) * limit;
+
+    const whereClause: any = { userId };
+    if (search) {
+      whereClause.name = {
+        contains: search,
+        mode: 'insensitive',
+      };
+    }
+
+    const [bots, total] = await Promise.all([
+      prisma.bot.findMany({
+        where: whereClause,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.bot.count({ where: whereClause }),
+    ]);
+
+    return {
+      bots,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async deleteBot(botId: string, userId: string) {
+    const bot = await prisma.bot.findUnique({ where: { id: botId } });
+    if (!bot) {
+      throw new AppError('Bot not found', 404);
+    }
+    if (bot.userId !== userId) {
+      throw new AppError('Forbidden', 403);
+    }
+
+    await prisma.bot.update({
+      where: { id: botId },
+      data: { deletedAt: new Date() },
+    });
+
+    return { message: 'Bot deleted successfully' };
+  }
+
+  async toggleBotStatus(botId: string, userId: string, status: string) {
+    const bot = await prisma.bot.findUnique({ where: { id: botId } });
+    if (!bot) {
+      throw new AppError('Bot not found', 404);
+    }
+    if (bot.userId !== userId) {
+      throw new AppError('Forbidden', 403);
+    }
+
+    const validStatuses = ['draft', 'active', 'inactive', 'archived'];
+    if (!validStatuses.includes(status)) {
+      throw new AppError('Invalid status', 400);
+    }
+
+    const updatedBot = await prisma.bot.update({
+      where: { id: botId },
+      data: { status },
+    });
+
+    return { message: 'Bot status updated successfully', bot: updatedBot };
   }
 }
 

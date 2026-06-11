@@ -10,6 +10,14 @@ export const getOverview = asyncHandler(async (req: Request, res: Response) => {
   res.json(result);
 });
 
+export const getUserOverview = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.user!.userId;
+    const result = await AnalyticsService.getOverview(userId);
+    res.json(result);
+  },
+);
+
 export const getBotAnalytics = asyncHandler(
   async (req: Request, res: Response) => {
     const botId = req.params.id as string;

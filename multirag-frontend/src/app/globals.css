@@ -45,3 +45,14 @@ body {
   filter: blur(60px);
   pointer-events: none;
 }
+
+.light-theme .mesh-gradient {
+  /* background-color: #f0f5ff; */
+  background-image:
+    radial-gradient(circle at 50% 100%, #004bd6, transparent 50%),
+    radial-gradient(circle at 50% 82%, #0088ff, transparent 50%);
+}
+
+.light-theme .mesh-gradient::before {
+  opacity: 0.80;
+}

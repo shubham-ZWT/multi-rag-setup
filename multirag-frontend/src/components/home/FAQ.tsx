@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { HiMinus, HiPlus } from "react-icons/hi";
+import { useHomeTheme } from "../providers/HomeThemeProvider";
 
 const faqs = [
   {
@@ -15,7 +16,7 @@ const faqs = [
       "The RAG assistant indexes your documents, FAQs, and knowledge base so it can answer questions using your own brand content with accuracy and context.",
   },
   {
-    question: "Can I customize the chatbot’s tone and behavior?",
+    question: "Can I customize the chatbot's tone and behavior?",
     answer:
       "Yes. Use the dashboard to adjust the bot prompt, response style, and knowledge sources so the chatbot matches your brand voice and customer needs.",
   },
@@ -28,19 +29,21 @@ const faqs = [
 
 export default function FAQ() {
   const [activeIndex, setActiveIndex] = useState<number | null>(0);
+  const { theme } = useHomeTheme();
+  const isLight = theme === "light";
 
   return (
-    <section className="bg-slate-50 py-24">
+    <section className={`${isLight ? "bg-slate-50" : "bg-neutral-950"} py-24`}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
           <div className="space-y-6">
-            <span className="inline-flex rounded-full bg-blue-100 px-4 py-1 text-sm font-semibold text-blue-700">
+            <span className={`inline-flex rounded-full px-4 py-1 text-sm font-semibold ${isLight ? "bg-blue-100 text-blue-700" : "bg-blue-900/30 text-blue-300"}`}>
               Frequently asked questions
             </span>
-            <h2 className="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+            <h2 className={`text-4xl font-semibold tracking-tight sm:text-5xl ${isLight ? "text-slate-950" : "text-white"}`}>
               Get clarity fast with answers built right into your experience.
             </h2>
-            <p className="max-w-xl text-lg leading-8 text-slate-600">
+            <p className={`max-w-xl text-lg leading-8 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
               Customers want instant help. A website without a smart assistant
               creates confusion and slows decision-making. Our FAQ section and
               chatbot solution reduce friction by offering dynamic answers and
@@ -56,20 +59,26 @@ export default function FAQ() {
                   key={faq.question}
                   type="button"
                   onClick={() => setActiveIndex(isActive ? null : index)}
-                  className="w-full rounded-3xl border border-slate-200 bg-white p-6 text-left shadow-sm transition hover:border-blue-300"
+                  className={`w-full rounded-3xl border p-6 text-left shadow-sm transition ${
+                    isLight
+                      ? "border-slate-200 bg-white hover:border-blue-300"
+                      : "border-neutral-800 bg-neutral-900 hover:border-blue-600"
+                  }`}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-base font-semibold text-slate-950">
+                      <p className={`text-base font-semibold ${isLight ? "text-slate-950" : "text-white"}`}>
                         {faq.question}
                       </p>
                     </div>
-                    <span className="mt-1 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+                    <span className={`mt-1 flex h-10 w-10 items-center justify-center rounded-full ${
+                      isLight ? "bg-blue-100 text-blue-700" : "bg-blue-900/30 text-blue-300"
+                    }`}>
                       {isActive ? <HiMinus size={20} /> : <HiPlus size={20} />}
                     </span>
                   </div>
                   {isActive ? (
-                    <p className="mt-4 text-sm leading-7 text-slate-600">
+                    <p className={`mt-4 text-sm leading-7 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                       {faq.answer}
                     </p>
                   ) : null}
